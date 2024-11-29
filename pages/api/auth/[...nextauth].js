@@ -43,14 +43,14 @@ export default NextAuth({
       if (user) {
         token.email = user.email;
       }
-      console.log("JWT Token:", token); // Логируем токен
+      console.log("JWT Token:", token);
       return token;
     },
     async session({ session, token }) {
       if (token) {
         session.user = { email: token.email };
       }
-      console.log("Session Data:", session); // Логируем сессию
+      console.log("Session Data:", session);
       return session;
     },
   },
