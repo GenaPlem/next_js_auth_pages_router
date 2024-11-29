@@ -1,14 +1,14 @@
 import NextAuth from "next-auth/next";
-import Credentials from "next-auth/providers/credentials";
-import { connectToDatabase } from "../../../lib/db";
+import CredentialsProvider from "next-auth/providers/credentials";
+import connectToDatabase from "../../../lib/db";
 import { verifyPassword } from "../../../lib/auth";
 
 export default NextAuth({
   session: {
-    jwt: true,
+    strategy: "jwt",
   },
   providers: [
-    Credentials({
+    CredentialsProvider({
       async authorize(credentials) {
         const client = await connectToDatabase();
 
@@ -34,10 +34,25 @@ export default NextAuth({
         }
 
         client.close();
-        return {
-          email: user.email,
-        };
+        return { email: user.email };
       },
     }),
   ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.email = user.email;
+      }
+      console.log("JWT Token:", token); // Логируем токен
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user = { email: token.email };
+      }
+      console.log("Session Data:", session); // Логируем сессию
+      return session;
+    },
+  },
+  secret: process.env.NEXTAUTH_SECRET,
 });
